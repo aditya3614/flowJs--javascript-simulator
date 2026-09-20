@@ -1,0 +1,373 @@
+/*
+ * Page. A dot field behind, a slim header carrying the logo, then two boxes
+ * side by side — same top and same bottom.
+ *
+ *   box--code  dark   [ bar ][ editor ........ ][ drawer: output/vars/... ]
+ *   box--viz   cream  [ bar ][ sentence ][ diagram ....... ][ transport ]
+ *
+ * Nothing else on the page has a border of its own; everything inside a box is
+ * separated from its neighbours by a single hairline.
+ */
+
+/* The dots: a static grid in CSS, with a canvas on top drawing the few that flicker. */
+.dotfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* Pitch must equal STEP in DotField.jsx so twinkles land on grid dots. */
+  background-image: radial-gradient(circle at 50% 50%, rgba(217, 119, 87, 0.32) 1.3px, transparent 1.9px);
+  background-size: 28px 28px;
+}
+.dotfield canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.app {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  max-width: 1640px;
+  margin: 0 auto;
+  padding: 20px 40px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.topbar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 44px; }
+
+/* Cream fill so the dot field does not show through the button. */
+.xlink {
+  display: grid; place-items: center;
+  flex: none;
+  width: 40px; height: 40px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hair);
+  background: var(--cream);
+  color: var(--ink);
+  transition: background 0.16s var(--ease), color 0.16s var(--ease), border-color 0.16s var(--ease);
+}
+.xlink svg { width: 17px; height: 17px; fill: currentColor; }
+.xlink:hover { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+
+.shell {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(420px, 5fr) minmax(0, 7fr);
+  gap: 32px;
+}
+
+.box {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.box--code { background: var(--ink); color: var(--fg); border: 2px solid var(--ink); }
+.box--viz  { background: var(--cream); border: 2px solid var(--fog); }
+
+/* The bar is the same height in both boxes so their first hairlines line up. */
+.box__bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: var(--bar);
+  padding: 0 20px 0 24px;
+  border-bottom: 1px solid var(--hair-soft);
+}
+.box--viz .box__bar { border-bottom-color: var(--hair); }
+
+/* ------------------------------------------------------------------ brand */
+
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+/* A 12-unit grid at 3px per unit, so every sprite pixel lands on a whole screen pixel. */
+.brand__mark { flex: none; display: block; width: 36px; height: 36px; overflow: visible; }
+
+/* A slow blink, mostly eyes-open. Suppressed under prefers-reduced-motion by the global rule. */
+.mascot__eyes { transform-box: fill-box; transform-origin: center; animation: mascot-blink 6s ease-in-out infinite; }
+@keyframes mascot-blink {
+  0%, 93%, 100% { transform: scaleY(1); }
+  95.5% { transform: scaleY(0.1); }
+}
+
+.brand__text { min-width: 0; }
+/* Semi-bold rather than medium: a wordmark wants a little more weight than body serif. */
+.brand__text h1 {
+  font-size: 23px; font-weight: 600; line-height: 27px;
+  letter-spacing: -0.012em;
+  color: var(--fg);
+}
+.brand__text p { margin: 0; font-size: 13px; line-height: 16px; color: var(--fg-2); }
+
+.bar__left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+/* ----------------------------------------------------------- picker + run */
+
+.pick { position: relative; display: flex; align-items: center; min-width: 0; }
+.pick__select {
+  appearance: none;
+  min-width: 0; max-width: 200px;
+  height: 36px;
+  padding: 0 30px 0 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hair);
+  background: var(--tint);
+  font-family: var(--sans);
+  font-size: 14px; font-weight: 400;
+  color: var(--fg);
+  cursor: pointer;
+  transition: border-color 0.16s var(--ease), background 0.16s var(--ease);
+}
+.pick__select:hover { border-color: var(--fog); background: var(--tint-2); }
+.pick__select option { background: var(--ink); color: var(--cream); }
+.pick__chev { position: absolute; right: 12px; font-size: 10px; color: var(--fg-2); pointer-events: none; }
+
+.run {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--terra);
+  background: var(--terra);
+  font-family: var(--sans);
+  font-size: 15px; font-weight: 500; line-height: 1;
+  color: var(--ink);
+  white-space: nowrap;
+  transition: background 0.16s var(--ease), border-color 0.16s var(--ease);
+}
+.run:hover:not(:disabled) { background: var(--terra-deep); border-color: var(--terra-deep); }
+.run:disabled { opacity: 0.5; cursor: progress; }
+.run kbd { font-family: var(--mono); font-size: 12px; font-weight: 400; opacity: 0.7; }
+
+/* ------------------------------------------------------------ editor + drawer */
+
+/*
+ * The height has to be passed down every level. The wrapper div that
+ * react-codemirror puts around the editor has no height of its own, so without
+ * it `.cm-editor { height: 100% }` falls back to "as tall as the text", the
+ * scroller never overflows, and the box just clips the rest.
+ */
+.editor__body { flex: 1; min-height: 0; overflow: hidden; }
+.editor__body .editor-surface { height: 100%; }
+.editor__body .cm-editor { height: 100%; }
+
+.detail {
+  flex: 0 0 clamp(210px, 32%, 320px);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-top: 1px solid var(--hair-soft);
+}
+
+.detail__tabs {
+  flex: none;
+  display: flex;
+  gap: 4px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--hair-soft);
+}
+
+.detail__tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 10px;
+  font-family: var(--sans);
+  font-size: 13px; font-weight: 500; line-height: 1;
+  color: var(--fg-2);
+  transition: color 0.16s var(--ease);
+}
+.detail__tab:hover { color: var(--fg); }
+.detail__tab.is-on { color: var(--fg); }
+.detail__tab.is-on::after {
+  content: '';
+  position: absolute; left: 10px; right: 10px; bottom: -1px;
+  height: 2px;
+  background: var(--terra);
+}
+
+.detail__badge {
+  padding: 0 6px;
+  border-radius: var(--r-xs);
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500; line-height: 17px;
+  color: var(--fg-2);
+  background: var(--tint-2);
+}
+
+.detail__body { flex: 1; min-height: 0; overflow: auto; }
+.empty-note { margin: 0; padding: 20px 24px; font-size: 14px; line-height: 20px; color: var(--fg-2); }
+
+/* Active line inside the dark editor. */
+.cm-flow-active {
+  background: rgba(217, 119, 87, 0.16);
+  box-shadow: inset 2px 0 0 var(--terra);
+  transition: background 0.18s var(--ease);
+}
+.cm-flow-span { background: rgba(217, 119, 87, 0.07); }
+
+/* -------------------------------------------------------------- visualiser */
+
+.viz__canvas {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  /* Shrinks with the window: on a short screen every pixel is diagram space. */
+  padding: clamp(14px, 3.6vh, 40px);
+  border-top: 1px solid var(--hair-soft);
+}
+
+/*
+ * The diagram is laid out at its natural size and then scaled to fit by
+ * <FitToBox>, so nothing in here ever needs to scroll. `.fit` is the space
+ * available; `.fit__inner` is the content, placed and scaled by a transform
+ * set from script.
+ */
+.fit { flex: 1 1 auto; position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+.fit__inner { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
+.fit__inner.is-ready { transition: transform 0.4s var(--ease); }
+
+.viz__center {
+  width: min(100%, 880px);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.truncated {
+  flex: none;
+  margin: 0;
+  padding: 12px 24px;
+  border-top: 1px solid var(--hair);
+  background: rgba(227, 218, 204, 0.55);
+  font-size: 14px; line-height: 20px;
+  color: var(--ink);
+}
+
+/* --------------------------------------------------------------- transport */
+
+.transport {
+  flex: none;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  height: 76px;
+  padding: 0 24px;
+  border-top: 1px solid var(--hair);
+}
+.transport.is-disabled { opacity: 0.5; pointer-events: none; }
+
+.transport__buttons { display: flex; align-items: center; gap: 6px; }
+
+.transport__btn, .transport__play {
+  display: grid; place-items: center;
+  width: 36px; height: 36px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hair);
+  color: var(--ink);
+  transition: background 0.16s var(--ease), border-color 0.16s var(--ease), opacity 0.16s var(--ease);
+}
+.transport__btn:hover:not(:disabled) { background: var(--tint-2); border-color: var(--fog); }
+.transport__btn:disabled { opacity: 0.35; cursor: default; }
+
+.transport__play {
+  width: 44px; margin: 0 2px;
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--cream);
+}
+.transport__play:hover { background: var(--ink); opacity: 0.85; }
+
+.transport svg { width: 16px; height: 16px; fill: currentColor; stroke: none; }
+.transport svg.ico--line {
+  fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+
+.transport__track {
+  position: relative;
+  height: 36px;
+  display: flex; align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.transport__density {
+  position: absolute; inset: 13px 0 auto 0;
+  display: flex; gap: 1px; height: 10px;
+  border-radius: var(--r-xs);
+  overflow: hidden;
+}
+.tick { flex: 1; min-width: 1px; opacity: 0.4; transition: opacity 0.2s var(--ease); }
+.tick.is-past { opacity: 1; }
+.tick.tone-a { background: var(--mist); }     /* plain statement */
+.tick.tone-b { background: var(--sage); }     /* value made or changed */
+.tick.tone-c { background: var(--terra); }    /* decision */
+.tick.tone-d { background: var(--sky); }      /* loop round */
+.tick.tone-e { background: var(--ink); }      /* call in or out */
+.tick.tone-f { background: var(--terra-deep); }/* printed output */
+.tick.tone-g { background: var(--seafoam); }  /* transform stage */
+.tick.tone-x { background: var(--mauve); }    /* error */
+
+.transport__thumb {
+  position: absolute; top: 18px;
+  width: 14px; height: 14px; margin: -7px 0 0 -7px;
+  border-radius: 99px;
+  background: var(--ink);
+  box-shadow: 0 0 0 3px var(--cream);
+  pointer-events: none;
+}
+
+.transport__right { display: flex; align-items: center; gap: 16px; }
+.transport__pos {
+  font-family: var(--mono);
+  font-size: 13px; font-weight: 500;
+  color: var(--fg-2); white-space: nowrap;
+}
+.transport__pos i { font-style: normal; color: var(--fg-3); margin: 0 3px; }
+
+.speeds { display: flex; gap: 2px; padding: 2px; border-radius: var(--r-sm); border: 1px solid var(--hair); }
+.speeds__btn {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--r-xs);
+  font-family: var(--mono);
+  font-size: 12px; font-weight: 500;
+  color: var(--fg-2);
+  transition: color 0.16s var(--ease), background 0.16s var(--ease);
+}
+.speeds__btn:hover { color: var(--fg); }
+.speeds__btn.is-on { color: var(--cream); background: var(--ink); }
+
+/* -------------------------------------------------------------- responsive */
+
+@media (max-width: 1080px) {
+  body { overflow: auto; }
+  .app { height: auto; min-height: 100%; padding: 16px; }
+  .shell { grid-template-columns: 1fr; gap: 20px; }
+  .box--code { height: 82vh; }
+  .box--viz { min-height: 78vh; }
+  .brand__text p { display: none; }
+}
+
+@media (max-width: 640px) {
+  .box__bar { padding: 0 16px; }
+  .pick__select { max-width: 130px; }
+  .run kbd { display: none; }
+  .viz__canvas { padding: 24px 16px; }
+  .transport { grid-template-columns: 1fr; height: auto; padding: 16px; gap: 12px; }
+  .transport__buttons, .transport__right { justify-content: center; }
+  .transport__btn, .transport__play { height: 44px; }
+  .transport__btn { width: 44px; }
+}

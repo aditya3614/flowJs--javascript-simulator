@@ -121,6 +121,8 @@ is where it gets replayed.
   actually read.
 - **The picture** is one diagram for this moment. While an array pipeline is
   running, the pipeline *is* the picture and nothing else is drawn next to it.
+  It never scrolls: if the diagram is too big for the space, it shrinks to fit
+  (and grows back smoothly when there's room).
 - **The bottom bar** has the play controls and the timeline. The colored ticks
   on the timeline are the steps, one tick each (grouped together for very long
   runs), colored by what kind of thing happens there. So you can see the
@@ -651,6 +653,19 @@ Two small rules keep the screen readable:
   picture, so the separate "moment" card steps aside instead of saying
   the same thing twice. Once the statement is over, the pipeline stays (dimmed)
   and the next line's own picture shows up next to it.
+- **The picture always fits.** [`FitToBox.jsx`](src/components/FitToBox.jsx)
+  wraps the diagram. It lets the diagram lay itself out at its natural size,
+  measures it, and then scales and centres it to fit the available space with a
+  CSS transform, easing between scales so nothing jumps. (It measures layout
+  size, not `scrollHeight`, because `scrollHeight` also counts cards that are
+  still sliding into place and would make the diagram wobble.) When the diagram
+  has to shrink a long way, plain scaling would leave the text too small, so it
+  also switches to a denser *level*: below about 0.6, 0.45 and 0.33 scale the
+  text gets bigger and bolder, borders get thicker, and padding and gaps are
+  pulled in (at the last level, the one-line description on each card is dropped
+  too). The levels are `data-fit="1"` to `"3"` on the diagram and live at the end
+  of `visual.css`; the level only goes back down once the diagram fits with room
+  to spare, so it doesn't flip back and forth from step to step.
 - **The Steps list only draws about 80 rows** around the current one. A long run
   can have thousands of frames, and rendering all of them would make the page
   crawl for no benefit.
@@ -791,6 +806,7 @@ src/
     MemoryView.jsx      the Variables and Call stack tabs
     ConsoleView.jsx     the Output tab
     StoryTrail.jsx      the Steps tab
+    FitToBox.jsx        scales the diagram to fit its space, and picks the density level
     Transport.jsx       play, scrub bar, speed, colored timeline
     ValueView.jsx       draws any snapshot: chips, list cells, record cards
     ErrorBoundary.jsx   so one broken panel can't take the whole page down

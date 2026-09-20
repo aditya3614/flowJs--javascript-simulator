@@ -1,0 +1,169 @@
+/*
+ * Design tokens — Anthropic system.
+ *
+ * Cream page, near-black ink, terracotta reserved for action and "you are
+ * here". Accent hues are punctuation: they tint, they never flood.
+ *
+ * Anthropic Serif / Sans are proprietary, so the documented fallbacks lead:
+ * Newsreader stands in for the serif (Georgia behind it), Inter for the sans.
+ */
+
+:root {
+  /* Palette */
+  --cream: #faf9f5;
+  --sand: #e3dacc;
+  --ink: #141413;
+  --slate: #73726c;
+  --stone: #87867f;
+  --fog: #b0aea5;
+  --mist: #c6c4ba;
+
+  --terra: #d97757;
+  --terra-deep: #c6613f;
+  --sage: #788c5d;
+  --sky: #6a9bcc;
+  --mauve: #c46686;
+  --blush: #ebcece;
+  --seafoam: #bcd1ca;
+
+  /* Radius scale — nothing outside this list */
+  --r-xs: 4px;
+  --r-sm: 8px;
+  --r-lg: 16px;
+
+  --shadow-hover:
+    rgba(0, 0, 0, 0.01) 0px 2px 2px 0px,
+    rgba(0, 0, 0, 0.02) 0px 4px 4px 0px,
+    rgba(0, 0, 0, 0.04) 0px 16px 24px 0px;
+
+  --serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --mono: 'Source Code Pro', ui-monospace, 'Courier New', monospace;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --bar: 64px;
+
+  /*
+   * Semantic colours. Components use these, never the raw palette, so the same
+   * markup reads correctly on the cream page and inside the dark editor box —
+   * `.is-dark` below swaps the neutrals and nothing else.
+   */
+  --fg: var(--ink);
+  --fg-2: var(--slate);
+  --fg-3: var(--stone);
+  --hair: var(--mist);
+  --hair-soft: rgba(20, 20, 19, 0.1);
+  --tint: rgba(20, 20, 19, 0.04);
+  --tint-2: rgba(20, 20, 19, 0.08);
+
+  --accent: var(--terra);
+  --accent-tint: rgba(217, 119, 87, 0.13);
+  --accent-line: rgba(217, 119, 87, 0.55);
+  --good: var(--sage);
+  --good-tint: rgba(120, 140, 93, 0.17);
+  --good-line: rgba(120, 140, 93, 0.7);
+  --info-tint: rgba(106, 155, 204, 0.15);
+  --info-line: rgba(106, 155, 204, 0.6);
+  --bad: var(--mauve);
+  --bad-tint: rgba(196, 102, 134, 0.12);
+  --bad-line: rgba(196, 102, 134, 0.6);
+}
+
+.is-dark {
+  --fg: var(--cream);
+  --fg-2: var(--fog);
+  --fg-3: var(--stone);
+  --hair: rgba(250, 249, 245, 0.2);
+  --hair-soft: rgba(250, 249, 245, 0.11);
+  --tint: rgba(250, 249, 245, 0.05);
+  --tint-2: rgba(250, 249, 245, 0.1);
+  --accent-tint: rgba(217, 119, 87, 0.2);
+  --good-tint: rgba(120, 140, 93, 0.26);
+  --info-tint: rgba(106, 155, 204, 0.22);
+  --bad-tint: rgba(196, 102, 134, 0.22);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--cream);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+}
+
+button, select, input { font: inherit; color: inherit; }
+button { border: none; background: none; cursor: pointer; }
+h1, h2, h3, h4 { margin: 0; font-family: var(--serif); }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(115, 114, 108, 0.35);
+  border-radius: 99px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(115, 114, 108, 0.6); background-clip: content-box; }
+
+:focus-visible { outline: 2px solid var(--terra); outline-offset: 2px; }
+
+/* ------------------------------------------------------------- primitives */
+
+/* Values are typed by tint: neutral numbers, warm strings, sage booleans. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 3px 10px;
+  border-radius: var(--r-xs);
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--fg);
+  background: var(--tint);
+  border: 1px solid var(--hair-soft);
+}
+.chip--str   { background: var(--accent-tint); border-color: var(--accent-line); }
+.chip--bool  { background: var(--good-tint); border-color: var(--good-line); }
+.chip--fn    { background: var(--info-tint); border-color: var(--info-line); }
+.chip--err   { background: var(--bad-tint); border-color: var(--bad-line); }
+.chip--empty { color: var(--fg-3); background: transparent; border-style: dashed; border-color: var(--hair); }
+
+.mono { font-family: var(--mono); }
+
+.tag {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 17px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
